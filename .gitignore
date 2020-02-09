@@ -1,0 +1,7 @@
+logs/train/*
+logs/valid/*
+results/result_METABRIC1/*
+data/METABRIC_cnv_1980_sdd.txt
+data/METABRIC_cnv_1980_sdd.txt
+data/METABRIC_5year_skfold_1980_491.dat
+brca_metabric/*

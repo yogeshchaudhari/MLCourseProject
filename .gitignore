@@ -1,5 +1,5 @@
-logs/train/*
-logs/valid/*
+../PycharmProjects/MDNNMD_full/logs/train/*
+../PycharmProjects/MDNNMD_full/logs/valid/*
 results/result_METABRIC1/*
 data/METABRIC_cnv_1980_sdd.txt
 data/METABRIC_cnv_1980_sdd.txt

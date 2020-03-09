@@ -10,14 +10,14 @@ from sklearn.metrics import accuracy_score
 from sklearn.ensemble import AdaBoostClassifier, GradientBoostingClassifier
 
 
-data_prefix = ""
-model_path = "C:\\Users\\denna\\PycharmProjects\\PreProcessing\\brca_metabric"
+data_prefix = "brca_metabric/"
+model_path = "autoEncoderData/"
 
 
-cna_data_path = data_prefix + "data\data_CNA.txt"
-rna_data_path = data_prefix + "data\data_RNA_Seq_expression_median.txt"
-gene_data_path = data_prefix + "data\data_gene_expression_median.txt"
-patient_data_path = data_prefix + "data\data_clinical_patient.txt"
+cna_data_path = data_prefix + "data_CNA.txt"
+rna_data_path = data_prefix + "data_mRNA_median_Zscores.txt"
+gene_data_path = data_prefix + "data_expression_median.txt"
+patient_data_path = data_prefix + "data_clinical_patient.txt"
 model_name = model_path + "my_model"
 
 
@@ -66,6 +66,37 @@ def train_graph():
 
     # Load patient data from file
     patient_data = pandas.read_csv(patient_data_path, sep="\t", skiprows=[0, 1, 2, 3])
+    patient_data_for_training = pandas.read_csv(patient_data_path, index_col='PATIENT_ID', sep="\t", skiprows=[0, 1, 2, 3])\
+        .fillna('NA')\
+        .replace('claudin-low', 'claudinLow')\
+        .replace('Ductal/NST', 'DuctalNST')\
+        .replace('Tubular/ cribriform', 'TubularCribriform') \
+        .replace('BREAST CONSERVING', 'BREASTCONSERVING') \
+        .replace('ER-/HER2-', 'ERHER2Neg') \
+        .replace('ER+/HER2- High Prolif', 'ERHER2NegHigh') \
+        .replace('ER+/HER2- Low Prolif', 'ERHER2NegLow') \
+        .replace('HER2+', 'HER2Pos')\
+        .replace('4ER+', 21) \
+        .replace('4ER-', 22)
+    patient_data_for_training.HORMONE_THERAPY = patient_data_for_training.HORMONE_THERAPY.map(dict(YES=1, NO=0, NA=0))
+    patient_data_for_training.CELLULARITY = patient_data_for_training.CELLULARITY.map(dict(High=3, Moderate=2, Low=1, NA=2))
+    patient_data_for_training.CHEMOTHERAPY = patient_data_for_training.CHEMOTHERAPY.map(dict(YES=1, NO=0, NA=0))
+    patient_data_for_training.ER_IHC = patient_data_for_training.ER_IHC.map(dict(Positve=2, Negative=1, NA=1.5))
+    patient_data_for_training.HER2_SNP6 = patient_data_for_training.HER2_SNP6.map(dict(NEUTRAL=2, GAIN=3, LOSS=1, UNDEF=2, NA=2))
+    patient_data_for_training.INFERRED_MENOPAUSAL_STATE = patient_data_for_training.INFERRED_MENOPAUSAL_STATE.map(dict(Post=1, Pre=2, NA=1.5))
+    patient_data_for_training.OS_STATUS = patient_data_for_training.OS_STATUS.map(dict(LIVING=1, DECEASED=2, NA=1))
+    patient_data_for_training.CLAUDIN_SUBTYPE = patient_data_for_training.CLAUDIN_SUBTYPE.map(dict(Basal=1, claudinLow=2, Her2=3, LumA=4, LumB=5, NC=6, Normal=0, NA=1.5))
+    patient_data_for_training.LATERALITY = patient_data_for_training.LATERALITY.map(dict(Right=1, Left=2, NA=1.5))
+    patient_data_for_training.RADIO_THERAPY = patient_data_for_training.RADIO_THERAPY.map(dict(YES=1, NO=2, NA=1.5))
+    patient_data_for_training.HISTOLOGICAL_SUBTYPE = patient_data_for_training.HISTOLOGICAL_SUBTYPE.map(
+        dict(DuctalNST=1, Lobular=2, Medullary=3, Metaplastic=4, Mixed=5, Mucinous=6, NA=7, Other=8, TubularCribriform=9)
+    )
+    patient_data_for_training.BREAST_SURGERY = patient_data_for_training.BREAST_SURGERY.map(dict(BREASTCONSERVING=1, MASTECTOMY=2, NA=1.5))
+    patient_data_for_training.THREEGENE = patient_data_for_training.THREEGENE.map(dict(ERHER2Neg=1, ERHER2NegHigh=2, ERHER2NegLow=3, HER2Pos=4, NA=2.5))
+    patient_data_for_training = patient_data_for_training.drop('VITAL_STATUS', axis=1)
+    patient_data_for_training = patient_data_for_training.replace('NA', 0)
+    patient_data_transpose = patient_data_for_training.transpose()
+
     intclust_data = patient_data[['PATIENT_ID', 'INTCLUST']].dropna()
 
     # Load CNA data from file
@@ -148,7 +179,7 @@ def train_graph():
     np_rna_data = []
     np_cna_data = []
     np_gene_data = []
-
+    np_clinical_data = []
 
     for index, row in intclust_data.iterrows():
 
@@ -176,16 +207,19 @@ def train_graph():
             rna_sample = rna_data[patient_id].values.transpose()
             gene_sample = gene_data[patient_id].values.transpose()
             cna_sample = cna_data[patient_id].values.transpose()
+            clinical_sample = patient_data_transpose[patient_id].values.transpose()
 
             np_rna_data.append(rna_sample)
             np_gene_data.append(gene_sample)
             np_cna_data.append(cna_sample)
             np_type_data.append(cluster_id)
+            np_clinical_data.append(clinical_sample)
 
     np_rna_data = np.array(np_rna_data)
     np_gene_data = np.array(np_gene_data)
     np_cna_data = np.array(np_cna_data)
     np_type_data = np.array(np_type_data)
+    np_clinical_data = np.array(np_clinical_data)
 
 
     # Normalize RNA data
@@ -197,7 +231,6 @@ def train_graph():
     # Print cluster counts
     unique, counts = np.unique(np_type_data, return_counts=True)
     print(counts)
-
 
     # Split into training and test data
     n_samples = np_rna_data.shape[0]
@@ -211,11 +244,13 @@ def train_graph():
     X_train_rna = np_rna_data[train_indices, :].copy()
     X_train_gene = np_gene_data[train_indices, :].copy()
     X_train_cna = np_cna_data[train_indices, :].copy()
+    X_train_clinical_data = np_clinical_data[train_indices, :].copy()
     y_train = np_type_data[train_indices].copy()
 
     X_test_rna = np_rna_data[test_indices, :].copy()
     X_test_gene = np_gene_data[test_indices, :].copy()
     X_test_cna = np_cna_data[test_indices, :].copy()
+    X_test_clinical_data = np_clinical_data[test_indices, :].copy()
     y_test = np_type_data[test_indices].copy()
 
 
@@ -337,20 +372,47 @@ def train_graph():
         multi_enc_train = multi_encoder.predict([X_train_rna, X_train_cna, X_train_gene])
         multi_enc_test  = multi_encoder.predict([X_test_rna, X_test_cna, X_test_gene])
 
+        print("before cna")
+        df = pandas.DataFrame(X_train_cna)
+        df.to_csv('autoEncoderData/cna_data.csv', index=False, header=False)
+        df = pandas.DataFrame(X_test_cna)
+        df.to_csv('autoEncoderData/test_cna_data.csv', index=False, header=False)
+        print("after cna")
+
+        print("before rna")
+        df = pandas.DataFrame(X_train_rna)
+        df.to_csv('autoEncoderData/rna_data.csv', index=False, header=False)
+        df = pandas.DataFrame(X_test_rna)
+        df.to_csv('autoEncoderData/test_rna_data.csv', index=False, header=False)
+        print("after rna")
+
+        print("before gene")
+        df = pandas.DataFrame(X_train_gene)
+        df.to_csv('autoEncoderData/gene_data.csv', index=False, header=False)
+        df = pandas.DataFrame(X_test_gene)
+        df.to_csv('autoEncoderData/test_gene_data.csv', index=False, header=False)
+        print("after gene")
+
+        print("before clinical")
+        df = pandas.DataFrame(X_train_clinical_data)
+        df.to_csv('autoEncoderData/clinical_data.csv', index=False, header=False)
+        df = pandas.DataFrame(X_test_clinical_data)
+        df.to_csv('autoEncoderData/test_clinical_data.csv', index=False, header=False)
+        print("after clinical")
 
         # Evaluate different representations
         entry = []
-        entry.append(run_complex_classifier(multi_enc_train, multi_enc_test))
-        entry.append(run_complex_classifier(X_train_rna, X_test_rna))
-        entry.append(run_complex_classifier(X_train_gene, X_test_gene))
-        entry.append(run_complex_classifier(X_train_cna, X_test_cna))
-        entry.append(run_complex_classifier(np.hstack((X_train_rna, X_train_cna, X_train_gene)), np.hstack((X_test_rna, X_test_cna, X_test_gene))))
-
-        entry.append(run_simple_classifier(multi_enc_train, multi_enc_test))
-        entry.append(run_simple_classifier(X_train_rna, X_test_rna))
-        entry.append(run_simple_classifier(X_train_gene, X_test_gene))
-        entry.append(run_simple_classifier(X_train_cna, X_test_cna))
-        entry.append(run_simple_classifier(np.hstack((X_train_rna, X_train_cna, X_train_gene)), np.hstack((X_test_rna, X_test_cna, X_test_gene))))
+        # entry.append(run_complex_classifier(multi_enc_train, multi_enc_test))
+        # entry.append(run_complex_classifier(X_train_rna, X_test_rna))
+        # entry.append(run_complex_classifier(X_train_gene, X_test_gene))
+        # entry.append(run_complex_classifier(X_train_cna, X_test_cna))
+        # entry.append(run_complex_classifier(np.hstack((X_train_rna, X_train_cna, X_train_gene)), np.hstack((X_test_rna, X_test_cna, X_test_gene))))
+        #
+        # entry.append(run_simple_classifier(multi_enc_train, multi_enc_test))
+        # entry.append(run_simple_classifier(X_train_rna, X_test_rna))
+        # entry.append(run_simple_classifier(X_train_gene, X_test_gene))
+        # entry.append(run_simple_classifier(X_train_cna, X_test_cna))
+        # entry.append(run_simple_classifier(np.hstack((X_train_rna, X_train_cna, X_train_gene)), np.hstack((X_test_rna, X_test_cna, X_test_gene))))
 
         print(entry)
 
@@ -382,7 +444,7 @@ def train_graph():
 
 
 # Run for 15 iterations
-for i in range(15):
+for i in range(1):
     print("Iteration ", i, "...")
     train_graph()
     print("")
@@ -393,8 +455,8 @@ for i in range(15):
 # Obtain averages
 data = np.array(data)
 
-means, deviations = np.apply_along_axis(func1d=np.mean, axis=0, arr=data), \
-                    np.apply_along_axis(func1d=np.std, axis=0, arr=data)
+#means, deviations = np.apply_along_axis(func1d=np.mean, axis=0, arr=data), \
+ #                   np.apply_along_axis(func1d=np.std, axis=0, arr=data)
 
-print(means)
-print(deviations)
+#print(means)
+#print(deviations)

@@ -1,7 +1,9 @@
 ../PycharmProjects/MDNNMD_full/logs/train/*
 ../PycharmProjects/MDNNMD_full/logs/valid/*
-results/result_METABRIC1/*
+results/result_METABRIC1/*.txt
 data/METABRIC_cnv_1980_sdd.txt
 data/METABRIC_cnv_1980_sdd.txt
 data/METABRIC_5year_skfold_1980_491.dat
 brca_metabric/*
+autoEncoderData/*.csv
+autoEncoderData/*/*.csv

@@ -84,7 +84,7 @@ def train_graph():
     patient_data_for_training.ER_IHC = patient_data_for_training.ER_IHC.map(dict(Positve=2, Negative=1, NA=1.5))
     patient_data_for_training.HER2_SNP6 = patient_data_for_training.HER2_SNP6.map(dict(NEUTRAL=2, GAIN=3, LOSS=1, UNDEF=2, NA=2))
     patient_data_for_training.INFERRED_MENOPAUSAL_STATE = patient_data_for_training.INFERRED_MENOPAUSAL_STATE.map(dict(Post=1, Pre=2, NA=1.5))
-    patient_data_for_training.OS_STATUS = patient_data_for_training.OS_STATUS.map(dict(LIVING=1, DECEASED=2, NA=1))
+    patient_data_for_training.OS_STATUS = patient_data_for_training.OS_STATUS.map(dict(LIVING=1, DECEASED=2, NA=10))
     patient_data_for_training.CLAUDIN_SUBTYPE = patient_data_for_training.CLAUDIN_SUBTYPE.map(dict(Basal=1, claudinLow=2, Her2=3, LumA=4, LumB=5, NC=6, Normal=0, NA=1.5))
     patient_data_for_training.LATERALITY = patient_data_for_training.LATERALITY.map(dict(Right=1, Left=2, NA=1.5))
     patient_data_for_training.RADIO_THERAPY = patient_data_for_training.RADIO_THERAPY.map(dict(YES=1, NO=2, NA=1.5))
@@ -93,8 +93,18 @@ def train_graph():
     )
     patient_data_for_training.BREAST_SURGERY = patient_data_for_training.BREAST_SURGERY.map(dict(BREASTCONSERVING=1, MASTECTOMY=2, NA=1.5))
     patient_data_for_training.THREEGENE = patient_data_for_training.THREEGENE.map(dict(ERHER2Neg=1, ERHER2NegHigh=2, ERHER2NegLow=3, HER2Pos=4, NA=2.5))
-    patient_data_for_training = patient_data_for_training.drop('VITAL_STATUS', axis=1)
+
     patient_data_for_training = patient_data_for_training.replace('NA', 0)
+
+    data_for_labels = pandas.DataFrame(index=patient_data_for_training.index, columns=["vital_status", "time_since_detection"])
+    data_for_labels.vital_status = patient_data_for_training.OS_STATUS
+    data_for_labels.time_since_detection = patient_data_for_training.OS_MONTHS
+    data_for_labels = data_for_labels.transpose()
+
+    label_sample = data_for_labels['MB-0000'].values.transpose()
+
+    patient_data_for_training = patient_data_for_training.drop('VITAL_STATUS', axis=1)
+    patient_data_for_training = patient_data_for_training.drop('OS_STATUS', axis=1)
     patient_data_transpose = patient_data_for_training.transpose()
 
     intclust_data = patient_data[['PATIENT_ID', 'INTCLUST']].dropna()
@@ -180,6 +190,7 @@ def train_graph():
     np_cna_data = []
     np_gene_data = []
     np_clinical_data = []
+    np_labels = []
 
     for index, row in intclust_data.iterrows():
 
@@ -208,6 +219,11 @@ def train_graph():
             gene_sample = gene_data[patient_id].values.transpose()
             cna_sample = cna_data[patient_id].values.transpose()
             clinical_sample = patient_data_transpose[patient_id].values.transpose()
+            label_sample = data_for_labels[patient_id].values.transpose()
+            if label_sample[0] == 2 and label_sample[1] < 60:
+                np_labels.append(1)
+            else:
+                np_labels.append(0)
 
             np_rna_data.append(rna_sample)
             np_gene_data.append(gene_sample)
@@ -220,7 +236,7 @@ def train_graph():
     np_cna_data = np.array(np_cna_data)
     np_type_data = np.array(np_type_data)
     np_clinical_data = np.array(np_clinical_data)
-
+    np_labels = np.array(np_labels)
 
     # Normalize RNA data
     np_rna_data = 2 * (np_rna_data - np.min(np_rna_data)) / (np.max(np_rna_data) - np.min(np_rna_data)) - 1
@@ -246,13 +262,14 @@ def train_graph():
     X_train_cna = np_cna_data[train_indices, :].copy()
     X_train_clinical_data = np_clinical_data[train_indices, :].copy()
     y_train = np_type_data[train_indices].copy()
+    label_train = np_labels[train_indices].copy()
 
     X_test_rna = np_rna_data[test_indices, :].copy()
     X_test_gene = np_gene_data[test_indices, :].copy()
     X_test_cna = np_cna_data[test_indices, :].copy()
     X_test_clinical_data = np_clinical_data[test_indices, :].copy()
     y_test = np_type_data[test_indices].copy()
-
+    label_test = np_labels[test_indices].copy()
 
     # For setting random RNA genes to zero:
     for i in range(X_test_rna.shape[0]):
@@ -399,6 +416,13 @@ def train_graph():
         df = pandas.DataFrame(X_test_clinical_data)
         df.to_csv('autoEncoderData/test_clinical_data.csv', index=False, header=False)
         print("after clinical")
+
+        print("before labels")
+        df = pandas.DataFrame(label_train)
+        df.to_csv('autoEncoderData/label_train.csv', index=False, header=False)
+        df = pandas.DataFrame(label_test)
+        df.to_csv('autoEncoderData/label_test.csv', index=False, header=False)
+        print("after labels")
 
         # Evaluate different representations
         entry = []

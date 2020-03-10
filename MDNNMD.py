@@ -20,9 +20,10 @@ class MDNNMD():
     def __init__(self):
         self.name = 'MDNNMD'
         self.K = 10
-        self.D1 = "Expr-400"
-        self.D2 = 'CNA-200'
-        self.D3 = 'CLINICAl-25'
+        self.D1 = "gene_data"
+        self.D2 = 'cna_data'
+        self.D3 = 'clinical_data'
+        self.D4 = 'rna_data'
         self.alpha = 0.4
         self.beta = 0.1
         self.gamma = 0.5
@@ -56,6 +57,7 @@ class MDNNMD():
         self.D1 = cp.get('input', 'D1')
         self.D2 = cp.get('input', 'D2')
         self.D3 = cp.get('input', 'D3')
+        self.D4 = cp.get('input', 'D4')
         self.K = int(cp.get('input', 'K'))
         self.LABEL = cp.get('input', 'label')
           
@@ -322,24 +324,25 @@ class MDNNMD():
                        
     def load_txt(self,op,f_len):     
         
-        d_class = numpy.loadtxt(self.LABEL, delimiter=' ').reshape(-1, 1) 
-        d_matrix = numpy.loadtxt(op, delimiter=' ')
-        
+        d_class = numpy.loadtxt(self.LABEL, delimiter=' ').reshape(-1, 1)
+        d_matrix = numpy.loadtxt(op, delimiter=',')
+        d_matrix = numpy.loadtxt(op, delimiter=',')
+
         d_matrix = d_matrix[:,0:f_len]
         self.F_SIZE = d_matrix.shape[1]
                          
         return d_matrix, d_class
     
 
-ut = Utils() 
-#Expr-400
+ut = Utils()
+#Expr-1227
 dnn_md1 = MDNNMD()
 dnn_md1.load_config()
-d_matrix, d_class = dnn_md1.load_txt(dnn_md1.D1,400)
+d_matrix, d_class = dnn_md1.load_txt(dnn_md1.D1, 1227)
 dnn_md1.epoch = 40
 dnn_md1.MAX_STEPS = [dnn_md1.epoch,dnn_md1.epoch,dnn_md1.epoch,dnn_md1.epoch,dnn_md1.epoch,dnn_md1.epoch,dnn_md1.epoch,dnn_md1.epoch,dnn_md1.epoch,dnn_md1.epoch]   #3000,3000,3000,100 MRMR-400  0504
 #dnn_md1.MAX_STEPS = [50,50,50,50,50,50,50,50,50,50]
-dnn_md1.hidden_units = [1000,500,500,100]
+dnn_md1.hidden_units = [3000, 1500, 1500, 300]
 ##dnn_md1.active_fun = 'relu'
 #dnn_md1.regular = 'True'
 dnn_md1.END_LEARNING_RATE = 0.00001
@@ -361,11 +364,11 @@ class_predict_fcn1,p_valid_all1,cls_valid_all1 = dnn_md1.train(kf1,d_matrix, d_c
 #CNA
 dnn_md2 = MDNNMD() 
 dnn_md2.load_config()
-d_matrix, d_class = dnn_md2.load_txt(dnn_md2.D2,200)
+d_matrix, d_class = dnn_md2.load_txt(dnn_md2.D2, 1227)
 #dnn_md2.MAX_STEPS = [25,30,25,35,40,45,45,70,85,25]   #3000,3000,3000,100 CNV-200  0504
 dnn_md2.epoch = 40
 dnn_md2.MAX_STEPS = [dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch] 
-dnn_md2.hidden_units = [1000,500,500,100]
+dnn_md2.hidden_units = [3000, 1500, 1500, 300]
 #dnn_md2.active_fun = 'relu'
 dnn_md2.END_LEARNING_RATE = 0.00001
 dnn_md2.IS_PRINT_INFO = "F" 
@@ -379,7 +382,7 @@ class_predict_fcn2,p_valid_all2,cls_valid_all2 = dnn_md2.train(kf1,d_matrix, d_c
 #CLINICAL-25
 dnn_md3 = MDNNMD() 
 dnn_md3.load_config()
-d_matrix, d_class = dnn_md3.load_txt(dnn_md3.D3,25)
+d_matrix, d_class = dnn_md3.load_txt(dnn_md3.D3,19)
 dnn_md3.epoch = 60
 dnn_md3.MAX_STEPS = [dnn_md3.epoch,dnn_md3.epoch,dnn_md3.epoch,dnn_md3.epoch,dnn_md3.epoch,dnn_md3.epoch,dnn_md3.epoch,dnn_md3.epoch,dnn_md3.epoch,dnn_md3.epoch]   #3000,3000,3000,100 CLINICAL-25
 dnn_md3.hidden_units = [1000,1000,1000,100]  #1000 1000 1000 100
@@ -391,6 +394,20 @@ dnn_md3.IS_PRINT_INFO = "F"
 label1, cls = dnn_md3.code_lables(d_class, dnn_md3.MT_CLASS_TASK1)
 class_predict_fcn3,p_valid_all3,cls_valid_all3 = dnn_md3.train(kf1,dnn_md3.scale_max_min(d_matrix), d_class, cls, ut)
 
+
+#RNA
+dnn_md4 = MDNNMD()
+dnn_md4.load_config()
+d_matrix, d_class = dnn_md4.load_txt(dnn_md4.D4, 1227)
+#dnn_md2.MAX_STEPS = [25,30,25,35,40,45,45,70,85,25]   #3000,3000,3000,100 CNV-200  0504
+dnn_md4.epoch = 40
+dnn_md4.MAX_STEPS = [dnn_md4.epoch,dnn_md4.epoch,dnn_md4.epoch,dnn_md4.epoch,dnn_md4.epoch,dnn_md4.epoch,dnn_md4.epoch,dnn_md4.epoch,dnn_md4.epoch,dnn_md4.epoch]
+dnn_md4.hidden_units = [3000, 1500, 1500, 300]
+#dnn_md4.active_fun = 'relu'
+dnn_md4.END_LEARNING_RATE = 0.00001
+dnn_md4.IS_PRINT_INFO = "F"
+label4, cls = dnn_md4.code_lables(d_class, dnn_md4.MT_CLASS_TASK1)
+class_predict_fcn4, p_valid_all4, cls_valid_all4 = dnn_md4.train(kf1,d_matrix, d_class, cls, ut)
 
 
 dnn_md1.alpha = 0.3

@@ -9,16 +9,14 @@ from keras import optimizers
 from sklearn.metrics import accuracy_score
 from sklearn.ensemble import AdaBoostClassifier, GradientBoostingClassifier
 
+data_prefix = ""
+model_path = "data/"
 
-data_prefix = "brca_metabric/"
-model_path = "autoEncoderData/"
-
-
-cna_data_path = data_prefix + "data_CNA.txt"
-rna_data_path = data_prefix + "data_mRNA_median_Zscores.txt"
-gene_data_path = data_prefix + "data_expression_median.txt"
-patient_data_path = data_prefix + "data_clinical_patient.txt"
-model_name = model_path + "my_model"
+cna_data_path = data_prefix + "data\data_CNA.txt"
+rna_data_path = data_prefix + "data\data_RNA_Seq_expression_median.txt"
+gene_data_path = data_prefix + "data\data_gene_expression_median.txt"
+patient_data_path = data_prefix + "data\data_clinical_patient.txt"
+model_name = model_path + "data\my_model"
 
 
 # Compute entropy for CNA variables
@@ -31,7 +29,6 @@ def entropy(x):
 # Compute Median Absolute Deviation for RNA variables
 def MAD(x):
     return median(abs(x - median(x)))
-
 
 
 # Group CNA variables
@@ -63,40 +60,48 @@ data = []
 
 
 def train_graph():
-
     # Load patient data from file
     patient_data = pandas.read_csv(patient_data_path, sep="\t", skiprows=[0, 1, 2, 3])
-    patient_data_for_training = pandas.read_csv(patient_data_path, index_col='PATIENT_ID', sep="\t", skiprows=[0, 1, 2, 3])\
-        .fillna('NA')\
-        .replace('claudin-low', 'claudinLow')\
-        .replace('Ductal/NST', 'DuctalNST')\
+    patient_data_for_training = pandas.read_csv(patient_data_path, index_col='PATIENT_ID', sep="\t",
+                                                skiprows=[0, 1, 2, 3]) \
+        .fillna('NA') \
+        .replace('claudin-low', 'claudinLow') \
+        .replace('Ductal/NST', 'DuctalNST') \
         .replace('Tubular/ cribriform', 'TubularCribriform') \
         .replace('BREAST CONSERVING', 'BREASTCONSERVING') \
         .replace('ER-/HER2-', 'ERHER2Neg') \
         .replace('ER+/HER2- High Prolif', 'ERHER2NegHigh') \
         .replace('ER+/HER2- Low Prolif', 'ERHER2NegLow') \
-        .replace('HER2+', 'HER2Pos')\
+        .replace('HER2+', 'HER2Pos') \
         .replace('4ER+', 21) \
         .replace('4ER-', 22)
     patient_data_for_training.HORMONE_THERAPY = patient_data_for_training.HORMONE_THERAPY.map(dict(YES=1, NO=0, NA=0))
-    patient_data_for_training.CELLULARITY = patient_data_for_training.CELLULARITY.map(dict(High=3, Moderate=2, Low=1, NA=2))
+    patient_data_for_training.CELLULARITY = patient_data_for_training.CELLULARITY.map(
+        dict(High=3, Moderate=2, Low=1, NA=2))
     patient_data_for_training.CHEMOTHERAPY = patient_data_for_training.CHEMOTHERAPY.map(dict(YES=1, NO=0, NA=0))
     patient_data_for_training.ER_IHC = patient_data_for_training.ER_IHC.map(dict(Positve=2, Negative=1, NA=1.5))
-    patient_data_for_training.HER2_SNP6 = patient_data_for_training.HER2_SNP6.map(dict(NEUTRAL=2, GAIN=3, LOSS=1, UNDEF=2, NA=2))
-    patient_data_for_training.INFERRED_MENOPAUSAL_STATE = patient_data_for_training.INFERRED_MENOPAUSAL_STATE.map(dict(Post=1, Pre=2, NA=1.5))
+    patient_data_for_training.HER2_SNP6 = patient_data_for_training.HER2_SNP6.map(
+        dict(NEUTRAL=2, GAIN=3, LOSS=1, UNDEF=2, NA=2))
+    patient_data_for_training.INFERRED_MENOPAUSAL_STATE = patient_data_for_training.INFERRED_MENOPAUSAL_STATE.map(
+        dict(Post=1, Pre=2, NA=1.5))
     patient_data_for_training.OS_STATUS = patient_data_for_training.OS_STATUS.map(dict(LIVING=1, DECEASED=2, NA=10))
-    patient_data_for_training.CLAUDIN_SUBTYPE = patient_data_for_training.CLAUDIN_SUBTYPE.map(dict(Basal=1, claudinLow=2, Her2=3, LumA=4, LumB=5, NC=6, Normal=0, NA=1.5))
+    patient_data_for_training.CLAUDIN_SUBTYPE = patient_data_for_training.CLAUDIN_SUBTYPE.map(
+        dict(Basal=1, claudinLow=2, Her2=3, LumA=4, LumB=5, NC=6, Normal=0, NA=1.5))
     patient_data_for_training.LATERALITY = patient_data_for_training.LATERALITY.map(dict(Right=1, Left=2, NA=1.5))
     patient_data_for_training.RADIO_THERAPY = patient_data_for_training.RADIO_THERAPY.map(dict(YES=1, NO=2, NA=1.5))
     patient_data_for_training.HISTOLOGICAL_SUBTYPE = patient_data_for_training.HISTOLOGICAL_SUBTYPE.map(
-        dict(DuctalNST=1, Lobular=2, Medullary=3, Metaplastic=4, Mixed=5, Mucinous=6, NA=7, Other=8, TubularCribriform=9)
+        dict(DuctalNST=1, Lobular=2, Medullary=3, Metaplastic=4, Mixed=5, Mucinous=6, NA=7, Other=8,
+             TubularCribriform=9)
     )
-    patient_data_for_training.BREAST_SURGERY = patient_data_for_training.BREAST_SURGERY.map(dict(BREASTCONSERVING=1, MASTECTOMY=2, NA=1.5))
-    patient_data_for_training.THREEGENE = patient_data_for_training.THREEGENE.map(dict(ERHER2Neg=1, ERHER2NegHigh=2, ERHER2NegLow=3, HER2Pos=4, NA=2.5))
+    patient_data_for_training.BREAST_SURGERY = patient_data_for_training.BREAST_SURGERY.map(
+        dict(BREASTCONSERVING=1, MASTECTOMY=2, NA=1.5))
+    patient_data_for_training.THREEGENE = patient_data_for_training.THREEGENE.map(
+        dict(ERHER2Neg=1, ERHER2NegHigh=2, ERHER2NegLow=3, HER2Pos=4, NA=2.5))
 
     patient_data_for_training = patient_data_for_training.replace('NA', 0)
 
-    data_for_labels = pandas.DataFrame(index=patient_data_for_training.index, columns=["vital_status", "time_since_detection"])
+    data_for_labels = pandas.DataFrame(index=patient_data_for_training.index,
+                                       columns=["vital_status", "time_since_detection"])
     data_for_labels.vital_status = patient_data_for_training.OS_STATUS
     data_for_labels.time_since_detection = patient_data_for_training.OS_MONTHS
     data_for_labels = data_for_labels.transpose()
@@ -175,7 +180,6 @@ def train_graph():
 
     # Remove gene column from RNA
     rna_data = rna_data.iloc[:, 1:]
-
 
     # Get number of features
     n_cna_features = cna_data.shape[0]
@@ -256,7 +260,6 @@ def train_graph():
     train_indices = sample_indices[:n_train_samples]
     test_indices = sample_indices[n_train_samples:]
 
-
     X_train_rna = np_rna_data[train_indices, :].copy()
     X_train_gene = np_gene_data[train_indices, :].copy()
     X_train_cna = np_cna_data[train_indices, :].copy()
@@ -276,7 +279,7 @@ def train_graph():
         zero_indices = np.arange(1200)
         np.random.shuffle(zero_indices)
         zero_indices = zero_indices[:120]
-        X_test_rna[i:i+1, zero_indices] = 0
+        X_test_rna[i:i + 1, zero_indices] = 0
 
     # For setting random RNA genes to zero:
     for i in range(X_test_gene.shape[0]):
@@ -285,8 +288,7 @@ def train_graph():
         zero_indices = zero_indices[:120]
         X_test_rna[i:i + 1, zero_indices] = 0
 
-
-# ----------------------------------------Multi-Modal AutoEncoder---------------------------------------------------
+    # ----------------------------------------Multi-Modal AutoEncoder---------------------------------------------------
 
     def run_multi_encoder(n_multi_epochs, verb):
 
@@ -314,7 +316,6 @@ def train_graph():
 
         hidden_cna_layer_2 = Dense(cna_hidden, activation='sigmoid')
         output_cna_layer = Dense(n_cna_features, activation='sigmoid')
-
 
         # Train first set of layers
         hidden_rna = hidden_rna_layer_1(input_rna)
@@ -347,7 +348,6 @@ def train_graph():
         cna_hidden_encoder = Model(input_cna, hidden_cna)
         intermediate_cna = cna_hidden_encoder.predict(X_train_cna)
 
-
         # Train combined layer
         hidden_rna = hidden_rna_layer_1(input_rna)
         hidden_gene = hidden_gene_layer_1(input_gene)
@@ -358,12 +358,11 @@ def train_graph():
         output_gene = hidden_gene_layer_2(combined)
         output_cna = hidden_cna_layer_2(combined)
         autoencoder = Model([input_rna, input_cna, input_gene], [output_rna, output_cna, output_gene])
-        autoencoder.compile(loss = ['mse', 'mse', 'mse'] , optimizer=optimizers.SGD(lr=0.01))
-        autoencoder.fit([X_train_rna, X_train_cna, X_train_gene], [intermediate_rna, intermediate_cna, intermediate_gene],
+        autoencoder.compile(loss=['mse', 'mse', 'mse'], optimizer=optimizers.SGD(lr=0.01))
+        autoencoder.fit([X_train_rna, X_train_cna, X_train_gene],
+                        [intermediate_rna, intermediate_cna, intermediate_gene],
                         epochs=n_multi_epochs, batch_size=32, shuffle=True, verbose=0)
         combined_layer.trainable = False
-
-
 
         # Train full model
         hidden_rna = hidden_rna_layer_1(input_rna)
@@ -379,7 +378,7 @@ def train_graph():
         output_cna = output_cna_layer(hidden_cna_2)
 
         autoencoder = Model([input_rna, input_cna, input_gene], [output_rna, output_cna, output_gene])
-        autoencoder.compile(loss=['mse', 'mse', 'mse'], optimizer= optimizers.SGD(lr=0.01))
+        autoencoder.compile(loss=['mse', 'mse', 'mse'], optimizer=optimizers.SGD(lr=0.01))
 
         autoencoder.fit([X_train_rna, X_train_cna, X_train_gene], [X_train_rna, X_train_cna, X_train_gene],
                         epochs=n_multi_epochs, batch_size=32, shuffle=True, verbose=0)
@@ -387,7 +386,7 @@ def train_graph():
         multi_encoder = Model([input_rna, input_cna, input_gene], combined)
 
         multi_enc_train = multi_encoder.predict([X_train_rna, X_train_cna, X_train_gene])
-        multi_enc_test  = multi_encoder.predict([X_test_rna, X_test_cna, X_test_gene])
+        multi_enc_test = multi_encoder.predict([X_test_rna, X_test_cna, X_test_gene])
 
         print("before cna")
         df = pandas.DataFrame(X_train_cna)
@@ -445,42 +444,23 @@ def train_graph():
         return True
 
 
-#----------------------------------------Classifier-------------------------------------------------------
-
-    def run_complex_classifier(x_train, x_test):
-
-        classifier = GradientBoostingClassifier(n_estimators=100, max_features='log2', random_state=0).fit(x_train, y_train)
-        y_pred = classifier.predict(x_test)
-        return accuracy_score(y_test, y_pred)
-
-
-    def run_simple_classifier(x_train, x_test):
-
-        classifier = AdaBoostClassifier(n_estimators=100, random_state=0).fit(x_train, y_train)
-        y_pred = classifier.predict(x_test)
-        return accuracy_score(y_test, y_pred)
-
-# ----------------------------------------Runner-------------------------------------------------------
+    # ----------------------------------------Runner-------------------------------------------------------
 
     run_multi_encoder(verb=0, n_multi_epochs=200)
 
 
-
-
 # Run for 15 iterations
-for i in range(1):
+for i in range(15):
     print("Iteration ", i, "...")
     train_graph()
     print("")
     print("")
-    
-
 
 # Obtain averages
 data = np.array(data)
 
-#means, deviations = np.apply_along_axis(func1d=np.mean, axis=0, arr=data), \
- #                   np.apply_along_axis(func1d=np.std, axis=0, arr=data)
+# means, deviations = np.apply_along_axis(func1d=np.mean, axis=0, arr=data), \
+#                   np.apply_along_axis(func1d=np.std, axis=0, arr=data)
 
-#print(means)
-#print(deviations)
+# print(means)
+# print(deviations)

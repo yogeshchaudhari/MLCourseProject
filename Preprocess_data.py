@@ -271,21 +271,68 @@ def train_graph():
     y_test = np_type_data[test_indices].copy()
     label_test = np_labels[test_indices].copy()
 
-    # For setting random RNA genes to zero:
+    # For setting random CNA to zero:
+    corrupted_X_train_cna = X_train_gene.copy()
+    corrupted_X_train_gene = X_train_gene.copy()
+    corrupted_X_train_rna = X_train_rna.copy()
+
+    for i in range(X_test_cna.shape[0]):
+        zero_indices = np.arange(900)
+        np.random.shuffle(zero_indices)
+        zero_indices = zero_indices[:90]
+        corrupted_X_train_cna[i:i+1, zero_indices] = 0
+        X_test_cna[i:i+1, zero_indices] = 0
+
+    # For setting random RNA to zero:
     for i in range(X_test_rna.shape[0]):
         zero_indices = np.arange(1200)
         np.random.shuffle(zero_indices)
         zero_indices = zero_indices[:120]
-        X_test_rna[i:i+1, zero_indices] = 0
+        corrupted_X_train_rna[i:i + 1, zero_indices] = 0
+        X_test_rna[i:i + 1, zero_indices] = 0
 
-    # For setting random RNA genes to zero:
+    # For setting random genes to zero:
     for i in range(X_test_gene.shape[0]):
         zero_indices = np.arange(1200)
         np.random.shuffle(zero_indices)
         zero_indices = zero_indices[:120]
-        X_test_rna[i:i + 1, zero_indices] = 0
+        corrupted_X_train_gene[i:i + 1, zero_indices] = 0
+        X_test_gene[i:i + 1, zero_indices] = 0
 
+    print("before cna")
+    df = pandas.DataFrame(X_train_cna)
+    df.to_csv('beforeautoEncoderData/cna_data.csv', index=False, header=False)
+    df = pandas.DataFrame(X_test_cna)
+    df.to_csv('beforeautoEncoderData/test_cna_data.csv', index=False, header=False)
+    print("after cna")
 
+    print("before rna")
+    df = pandas.DataFrame(X_train_rna)
+    df.to_csv('beforeautoEncoderData/rna_data.csv', index=False, header=False)
+    df = pandas.DataFrame(X_test_rna)
+    df.to_csv('beforeautoEncoderData/test_rna_data.csv', index=False, header=False)
+    print("after rna")
+
+    print("before gene")
+    df = pandas.DataFrame(X_train_gene)
+    df.to_csv('beforeautoEncoderData/gene_data.csv', index=False, header=False)
+    df = pandas.DataFrame(X_test_gene)
+    df.to_csv('beforeautoEncoderData/test_gene_data.csv', index=False, header=False)
+    print("after gene")
+
+    print("before clinical")
+    df = pandas.DataFrame(X_train_clinical_data)
+    df.to_csv('beforeautoEncoderData/clinical_data.csv', index=False, header=False)
+    df = pandas.DataFrame(X_test_clinical_data)
+    df.to_csv('beforeautoEncoderData/test_clinical_data.csv', index=False, header=False)
+    print("after clinical")
+
+    print("before labels")
+    df = pandas.DataFrame(label_train)
+    df.to_csv('beforeautoEncoderData/label_train.csv', index=False, header=False)
+    df = pandas.DataFrame(label_test)
+    df.to_csv('beforeautoEncoderData/label_test.csv', index=False, header=False)
+    print("after labels")
 # ----------------------------------------Multi-Modal AutoEncoder---------------------------------------------------
 
     def run_multi_encoder(n_multi_epochs, verb):
@@ -384,29 +431,40 @@ def train_graph():
         autoencoder.fit([X_train_rna, X_train_cna, X_train_gene], [X_train_rna, X_train_cna, X_train_gene],
                         epochs=n_multi_epochs, batch_size=32, shuffle=True, verbose=0)
 
+        [output_train_rna, output_train_cna, output_train_gene] = autoencoder.predict([X_train_rna, X_train_cna, X_train_gene])
+        [output_test_rna, output_test_cna, output_test_gene] = autoencoder.predict([X_test_rna, X_test_cna, X_test_gene])
+
         multi_encoder = Model([input_rna, input_cna, input_gene], combined)
 
         multi_enc_train = multi_encoder.predict([X_train_rna, X_train_cna, X_train_gene])
         multi_enc_test  = multi_encoder.predict([X_test_rna, X_test_cna, X_test_gene])
 
+
+        print("before mmae")
+        df = pandas.DataFrame(multi_enc_train)
+        df.to_csv('autoEncoderData/multi_enc_train.csv', index=False, header=False)
+        df = pandas.DataFrame(multi_enc_test)
+        df.to_csv('autoEncoderData/multi_enc_test.csv', index=False, header=False)
+        print("after mmae")
+
         print("before cna")
-        df = pandas.DataFrame(X_train_cna)
+        df = pandas.DataFrame(output_train_cna)
         df.to_csv('autoEncoderData/cna_data.csv', index=False, header=False)
-        df = pandas.DataFrame(X_test_cna)
+        df = pandas.DataFrame(output_test_cna)
         df.to_csv('autoEncoderData/test_cna_data.csv', index=False, header=False)
         print("after cna")
 
         print("before rna")
-        df = pandas.DataFrame(X_train_rna)
+        df = pandas.DataFrame(output_train_rna)
         df.to_csv('autoEncoderData/rna_data.csv', index=False, header=False)
-        df = pandas.DataFrame(X_test_rna)
+        df = pandas.DataFrame(output_test_rna)
         df.to_csv('autoEncoderData/test_rna_data.csv', index=False, header=False)
         print("after rna")
 
         print("before gene")
-        df = pandas.DataFrame(X_train_gene)
+        df = pandas.DataFrame(output_train_gene)
         df.to_csv('autoEncoderData/gene_data.csv', index=False, header=False)
-        df = pandas.DataFrame(X_test_gene)
+        df = pandas.DataFrame(output_test_gene)
         df.to_csv('autoEncoderData/test_gene_data.csv', index=False, header=False)
         print("after gene")
 

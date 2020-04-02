@@ -9,3 +9,4 @@ autoEncoderData/*.csv
 autoEncoderData/*/*.csv
 beforeautoEncoderData/*.csv
 beforeautoEncoderData/*/*.csv
+logs/*

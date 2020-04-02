@@ -20,13 +20,14 @@ class MDNNMD():
     def __init__(self):
         self.name = 'MDNNMD'
         self.K = 10
-        self.D1 = "gene_data"
-        self.D2 = 'cna_data'
-        self.D3 = 'clinical_data'
+        self.D1 = "Expr-400"
+        self.D2 = 'CNA-200'
+        self.D3 = 'CLINICAl-25'
         self.D4 = 'rna_data'
         self.alpha = 0.4
         self.beta = 0.1
         self.gamma = 0.5
+        self.delta = 0.3
         self.LABEL = 'os_label_1980'
         self.Kfold = "data/METABRIC_5year_skfold_1980_491.dat"
         self.epsilon = 1e-3
@@ -54,6 +55,7 @@ class MDNNMD():
         self.alpha = float32(cp.get('input', 'alpha'))
         self.beta = float32(cp.get('input', 'beta'))
         self.gamma = float32(cp.get('input', 'gamma'))
+        self.delta = float32(cp.get('input', 'delta'))
         self.D1 = cp.get('input', 'D1')
         self.D2 = cp.get('input', 'D2')
         self.D3 = cp.get('input', 'D3')
@@ -324,21 +326,20 @@ class MDNNMD():
                        
     def load_txt(self,op,f_len):     
         
-        d_class = numpy.loadtxt(self.LABEL, delimiter=' ').reshape(-1, 1)
+        d_class = numpy.loadtxt(self.LABEL, delimiter=' ').reshape(-1, 1) 
         d_matrix = numpy.loadtxt(op, delimiter=',')
-        d_matrix = numpy.loadtxt(op, delimiter=',')
-
+        
         d_matrix = d_matrix[:,0:f_len]
         self.F_SIZE = d_matrix.shape[1]
                          
         return d_matrix, d_class
     
 
-ut = Utils()
+ut = Utils() 
 #Expr-1227
 dnn_md1 = MDNNMD()
 dnn_md1.load_config()
-d_matrix, d_class = dnn_md1.load_txt(dnn_md1.D1, 1227)
+d_matrix, d_class = dnn_md1.load_txt(dnn_md1.D1,1227)
 dnn_md1.epoch = 40
 dnn_md1.MAX_STEPS = [dnn_md1.epoch,dnn_md1.epoch,dnn_md1.epoch,dnn_md1.epoch,dnn_md1.epoch,dnn_md1.epoch,dnn_md1.epoch,dnn_md1.epoch,dnn_md1.epoch,dnn_md1.epoch]   #3000,3000,3000,100 MRMR-400  0504
 #dnn_md1.MAX_STEPS = [50,50,50,50,50,50,50,50,50,50]
@@ -364,7 +365,7 @@ class_predict_fcn1,p_valid_all1,cls_valid_all1 = dnn_md1.train(kf1,d_matrix, d_c
 #CNA
 dnn_md2 = MDNNMD() 
 dnn_md2.load_config()
-d_matrix, d_class = dnn_md2.load_txt(dnn_md2.D2, 1227)
+d_matrix, d_class = dnn_md2.load_txt(dnn_md2.D2,1227)
 #dnn_md2.MAX_STEPS = [25,30,25,35,40,45,45,70,85,25]   #3000,3000,3000,100 CNV-200  0504
 dnn_md2.epoch = 40
 dnn_md2.MAX_STEPS = [dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch] 
@@ -394,7 +395,6 @@ dnn_md3.IS_PRINT_INFO = "F"
 label1, cls = dnn_md3.code_lables(d_class, dnn_md3.MT_CLASS_TASK1)
 class_predict_fcn3,p_valid_all3,cls_valid_all3 = dnn_md3.train(kf1,dnn_md3.scale_max_min(d_matrix), d_class, cls, ut)
 
-
 #RNA
 dnn_md4 = MDNNMD()
 dnn_md4.load_config()
@@ -413,9 +413,10 @@ class_predict_fcn4, p_valid_all4, cls_valid_all4 = dnn_md4.train(kf1,d_matrix, d
 dnn_md1.alpha = 0.3
 dnn_md1.beta = 0.1
 dnn_md1.gamma = 1-dnn_md1.alpha-dnn_md1.beta
+dnn_md4.delta = 1-dnn_md1.alpha-dnn_md1.beta-dnn_md1.gamma
 
 #validation
-p_valid_all = dnn_md1.alpha*p_valid_all1 + dnn_md1.beta*p_valid_all2 + dnn_md1.gamma*p_valid_all3
+p_valid_all = dnn_md1.alpha*p_valid_all1 + dnn_md1.beta*p_valid_all2 + dnn_md1.gamma*p_valid_all3 + dnn_md1.delta*p_valid_all4
 auc_fcn, pr_auc_fcn = ut.calc_auc_t(cls_valid_all1[:,1], p_valid_all[:,1])
 
 pre_f,rec_f,f1_f,acc_f = ut.get_precision_and_recall_f1(np.argmax(cls_valid_all1,1), np.argmax(p_valid_all,1))
@@ -423,7 +424,7 @@ pre_f,rec_f,f1_f,acc_f = ut.get_precision_and_recall_f1(np.argmax(cls_valid_all1
 print("DNN-validation## ACC: %s,AUC %s,PRE %s,REC %s,F1 %s, PR_AUC %s" %(acc_f,auc_fcn,pre_f,rec_f,f1_f,pr_auc_fcn))
 
 #test 
-class_predict_fcn = dnn_md1.alpha*class_predict_fcn1 + dnn_md1.beta*class_predict_fcn2 + dnn_md1.gamma*class_predict_fcn3
+class_predict_fcn = dnn_md1.alpha*class_predict_fcn1 + dnn_md1.beta*class_predict_fcn2 + dnn_md1.gamma*class_predict_fcn3 + dnn_md1.delta*class_predict_fcn4
 auc_fcn, pr_auc_fcn = ut.calc_auc_t(cls[:,1], class_predict_fcn[:,1])
 
 pre_f,rec_f,f1_f,acc_f = ut.get_precision_and_recall_f1(np.argmax(cls,1), np.argmax(class_predict_fcn,1))
@@ -431,15 +432,17 @@ pre_f,rec_f,f1_f,acc_f = ut.get_precision_and_recall_f1(np.argmax(cls,1), np.arg
 print("DNN-testing## ACC: %s,AUC %s,PRE %s,REC %s,F1 %s, PR_AUC %s" %(acc_f,auc_fcn,pre_f,rec_f,f1_f,pr_auc_fcn))
 
             
-name = dnn_md1.name+'_'+str(dnn_md1.hidden_units[0])+'-'+str(dnn_md1.hidden_units[1])+'-'+str(dnn_md1.hidden_units[2])+'-'+str(dnn_md1.hidden_units[3])+'_'+str(dnn_md1.alpha)+'_'+str(dnn_md1.beta)
+name = dnn_md1.name+'_'+str(dnn_md1.hidden_units[0])+'-'+str(dnn_md1.hidden_units[1])+'-'+str(dnn_md1.hidden_units[2])+'-'+str(dnn_md1.hidden_units[3])+'_'+str(dnn_md1.alpha)+'_'+str(dnn_md1.beta)+'_'+str(dnn_md1.gamma)
 #SCORE
 np.savetxt("results/result_METABRIC1/p_valid_all1.txt", p_valid_all1)
 np.savetxt("results/result_METABRIC1/p_valid_all2.txt", p_valid_all2)
 np.savetxt("results/result_METABRIC1/p_valid_all3.txt", p_valid_all3)
+np.savetxt("results/result_METABRIC1/p_valid_all4.txt", p_valid_all4)
 
 np.savetxt("results/result_METABRIC1/cls_valid_all1.txt", cls_valid_all1)
 
 np.savetxt("results/result_METABRIC1/class_predict_fcn1.txt", class_predict_fcn1)
 np.savetxt("results/result_METABRIC1/class_predict_fcn2.txt", class_predict_fcn2)
 np.savetxt("results/result_METABRIC1/class_predict_fcn3.txt", class_predict_fcn3)
+np.savetxt("results/result_METABRIC1/class_predict_fcn4.txt", class_predict_fcn4)
 np.savetxt("results/result_METABRIC1/cls.txt", cls)

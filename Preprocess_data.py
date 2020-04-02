@@ -9,15 +9,16 @@ from keras import optimizers
 from sklearn.metrics import accuracy_score
 from sklearn.ensemble import AdaBoostClassifier, GradientBoostingClassifier
 
-data_prefix = ""
-model_path = "data/"
 
-cna_data_path = data_prefix + "data\data_CNA.txt"
-rna_data_path = data_prefix + "data\data_RNA_Seq_expression_median.txt"
-gene_data_path = data_prefix + "data\data_gene_expression_median.txt"
-patient_data_path = data_prefix + "data\data_clinical_patient.txt"
-model_name = model_path + "data\my_model"
+data_prefix = "brca_metabric/"
+model_path = "autoEncoderData/"
 
+
+cna_data_path = data_prefix + "data_CNA.txt"
+rna_data_path = data_prefix + "data_mRNA_median_Zscores.txt"
+gene_data_path = data_prefix + "data_expression_median.txt"
+patient_data_path = data_prefix + "data_clinical_patient.txt"
+model_name = model_path + "my_model"
 
 # Compute entropy for CNA variables
 def entropy(x):
@@ -275,7 +276,7 @@ def train_graph():
     label_test = np_labels[test_indices].copy()
 
     # For setting random CNA to zero:
-    corrupted_X_train_cna = X_train_gene.copy()
+    corrupted_X_train_cna = X_train_cna.copy()
     corrupted_X_train_gene = X_train_gene.copy()
     corrupted_X_train_rna = X_train_rna.copy()
 
@@ -370,7 +371,7 @@ def train_graph():
         output_rna = output_rna_layer(hidden_rna)
         autoencoder = Model(input_rna, output_rna)
         autoencoder.compile(loss='mse', optimizer=optimizers.SGD(lr=0.01))
-        autoencoder.fit(X_train_rna, X_train_rna,
+        autoencoder.fit(corrupted_X_train_rna, X_train_rna,
                         epochs=n_multi_epochs, batch_size=32, shuffle=True, verbose=0)
         hidden_rna_layer_1.trainable = False
         rna_hidden_encoder = Model(input_rna, hidden_rna)
@@ -380,7 +381,7 @@ def train_graph():
         output_gene = output_gene_layer(hidden_gene)
         autoencoder = Model(input_gene, output_gene)
         autoencoder.compile(loss='mse', optimizer=optimizers.SGD(lr=0.01))
-        autoencoder.fit(X_train_gene, X_train_gene,
+        autoencoder.fit(corrupted_X_train_gene, X_train_gene,
                         epochs=n_multi_epochs, batch_size=32, shuffle=True, verbose=0)
         hidden_gene_layer_1.trainable = False
         gene_hidden_encoder = Model(input_gene, hidden_gene)
@@ -390,7 +391,7 @@ def train_graph():
         output_cna = output_cna_layer(hidden_cna)
         autoencoder = Model(input_cna, output_cna)
         autoencoder.compile(loss='mse', optimizer=optimizers.SGD(lr=0.01))
-        autoencoder.fit(X_train_cna, X_train_cna,
+        autoencoder.fit(corrupted_X_train_cna, X_train_cna,
                         epochs=n_multi_epochs, batch_size=32, shuffle=True, verbose=0)
         hidden_cna_layer_1.trainable = False
         cna_hidden_encoder = Model(input_cna, hidden_cna)
@@ -407,7 +408,7 @@ def train_graph():
         output_cna = hidden_cna_layer_2(combined)
         autoencoder = Model([input_rna, input_cna, input_gene], [output_rna, output_cna, output_gene])
         autoencoder.compile(loss=['mse', 'mse', 'mse'], optimizer=optimizers.SGD(lr=0.01))
-        autoencoder.fit([X_train_rna, X_train_cna, X_train_gene],
+        autoencoder.fit([corrupted_X_train_rna, corrupted_X_train_cna, corrupted_X_train_gene],
                         [intermediate_rna, intermediate_cna, intermediate_gene],
                         epochs=n_multi_epochs, batch_size=32, shuffle=True, verbose=0)
         combined_layer.trainable = False
@@ -428,7 +429,7 @@ def train_graph():
         autoencoder = Model([input_rna, input_cna, input_gene], [output_rna, output_cna, output_gene])
         autoencoder.compile(loss=['mse', 'mse', 'mse'], optimizer=optimizers.SGD(lr=0.01))
 
-        autoencoder.fit([X_train_rna, X_train_cna, X_train_gene], [X_train_rna, X_train_cna, X_train_gene],
+        autoencoder.fit([corrupted_X_train_rna, corrupted_X_train_cna, corrupted_X_train_gene], [X_train_rna, X_train_cna, X_train_gene],
                         epochs=n_multi_epochs, batch_size=32, shuffle=True, verbose=0)
 
         [output_train_rna, output_train_cna, output_train_gene] = autoencoder.predict([X_train_rna, X_train_cna, X_train_gene])
@@ -509,7 +510,7 @@ def train_graph():
 
 
 # Run for 15 iterations
-for i in range(15):
+for i in range(1):
     print("Iteration ", i, "...")
     train_graph()
     print("")

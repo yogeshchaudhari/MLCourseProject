@@ -7,3 +7,5 @@ data/METABRIC_5year_skfold_1980_491.dat
 brca_metabric/*
 autoEncoderData/*.csv
 autoEncoderData/*/*.csv
+beforeautoEncoderData/*.csv
+beforeautoEncoderData/*/*.csv

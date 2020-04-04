@@ -339,11 +339,11 @@ ut = Utils()
 #Expr-1227
 dnn_md1 = MDNNMD()
 dnn_md1.load_config()
-d_matrix, d_class = dnn_md1.load_txt(dnn_md1.D1,1227)
+d_matrix, d_class = dnn_md1.load_txt(dnn_md1.D1,1600)
 dnn_md1.epoch = 40
 dnn_md1.MAX_STEPS = [dnn_md1.epoch,dnn_md1.epoch,dnn_md1.epoch,dnn_md1.epoch,dnn_md1.epoch,dnn_md1.epoch,dnn_md1.epoch,dnn_md1.epoch,dnn_md1.epoch,dnn_md1.epoch]   #3000,3000,3000,100 MRMR-400  0504
 #dnn_md1.MAX_STEPS = [50,50,50,50,50,50,50,50,50,50]
-dnn_md1.hidden_units = [3000, 1500, 1500, 300]
+dnn_md1.hidden_units = [3500, 2000, 2000, 400]
 ##dnn_md1.active_fun = 'relu'
 #dnn_md1.regular = 'True'
 dnn_md1.END_LEARNING_RATE = 0.00001
@@ -362,19 +362,19 @@ class_predict_fcn1,p_valid_all1,cls_valid_all1 = dnn_md1.train(kf1,d_matrix, d_c
 
 
 
-#CNA
-dnn_md2 = MDNNMD() 
-dnn_md2.load_config()
-d_matrix, d_class = dnn_md2.load_txt(dnn_md2.D2,1227)
-#dnn_md2.MAX_STEPS = [25,30,25,35,40,45,45,70,85,25]   #3000,3000,3000,100 CNV-200  0504
-dnn_md2.epoch = 40
-dnn_md2.MAX_STEPS = [dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch] 
-dnn_md2.hidden_units = [3000, 1500, 1500, 300]
-#dnn_md2.active_fun = 'relu'
-dnn_md2.END_LEARNING_RATE = 0.00001
-dnn_md2.IS_PRINT_INFO = "F" 
-label1, cls = dnn_md2.code_lables(d_class, dnn_md2.MT_CLASS_TASK1)
-class_predict_fcn2,p_valid_all2,cls_valid_all2 = dnn_md2.train(kf1,d_matrix, d_class, cls, ut)
+# #CNA
+# dnn_md2 = MDNNMD()
+# dnn_md2.load_config()
+# d_matrix, d_class = dnn_md2.load_txt(dnn_md2.D2,1227)
+# #dnn_md2.MAX_STEPS = [25,30,25,35,40,45,45,70,85,25]   #3000,3000,3000,100 CNV-200  0504
+# dnn_md2.epoch = 40
+# dnn_md2.MAX_STEPS = [dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch]
+# dnn_md2.hidden_units = [3000, 1500, 1500, 300]
+# #dnn_md2.active_fun = 'relu'
+# dnn_md2.END_LEARNING_RATE = 0.00001
+# dnn_md2.IS_PRINT_INFO = "F"
+# label1, cls = dnn_md2.code_lables(d_class, dnn_md2.MT_CLASS_TASK1)
+# class_predict_fcn2,p_valid_all2,cls_valid_all2 = dnn_md2.train(kf1,d_matrix, d_class, cls, ut)
 
 
 
@@ -396,27 +396,27 @@ label1, cls = dnn_md3.code_lables(d_class, dnn_md3.MT_CLASS_TASK1)
 class_predict_fcn3,p_valid_all3,cls_valid_all3 = dnn_md3.train(kf1,dnn_md3.scale_max_min(d_matrix), d_class, cls, ut)
 
 #RNA
-dnn_md4 = MDNNMD()
-dnn_md4.load_config()
-d_matrix, d_class = dnn_md4.load_txt(dnn_md4.D4, 1227)
-#dnn_md2.MAX_STEPS = [25,30,25,35,40,45,45,70,85,25]   #3000,3000,3000,100 CNV-200  0504
-dnn_md4.epoch = 40
-dnn_md4.MAX_STEPS = [dnn_md4.epoch,dnn_md4.epoch,dnn_md4.epoch,dnn_md4.epoch,dnn_md4.epoch,dnn_md4.epoch,dnn_md4.epoch,dnn_md4.epoch,dnn_md4.epoch,dnn_md4.epoch]
-dnn_md4.hidden_units = [3000, 1500, 1500, 300]
-#dnn_md4.active_fun = 'relu'
-dnn_md4.END_LEARNING_RATE = 0.00001
-dnn_md4.IS_PRINT_INFO = "F"
-label4, cls = dnn_md4.code_lables(d_class, dnn_md4.MT_CLASS_TASK1)
-class_predict_fcn4, p_valid_all4, cls_valid_all4 = dnn_md4.train(kf1,d_matrix, d_class, cls, ut)
+# dnn_md4 = MDNNMD()
+# dnn_md4.load_config()
+# d_matrix, d_class = dnn_md4.load_txt(dnn_md4.D4, 1227)
+# #dnn_md2.MAX_STEPS = [25,30,25,35,40,45,45,70,85,25]   #3000,3000,3000,100 CNV-200  0504
+# dnn_md4.epoch = 40
+# dnn_md4.MAX_STEPS = [dnn_md4.epoch,dnn_md4.epoch,dnn_md4.epoch,dnn_md4.epoch,dnn_md4.epoch,dnn_md4.epoch,dnn_md4.epoch,dnn_md4.epoch,dnn_md4.epoch,dnn_md4.epoch]
+# dnn_md4.hidden_units = [3000, 1500, 1500, 300]
+# #dnn_md4.active_fun = 'relu'
+# dnn_md4.END_LEARNING_RATE = 0.00001
+# dnn_md4.IS_PRINT_INFO = "F"
+# label4, cls = dnn_md4.code_lables(d_class, dnn_md4.MT_CLASS_TASK1)
+# class_predict_fcn4, p_valid_all4, cls_valid_all4 = dnn_md4.train(kf1,d_matrix, d_class, cls, ut)
 
 
 dnn_md1.alpha = 0.3
 dnn_md1.beta = 0.1
 dnn_md1.gamma = 1-dnn_md1.alpha-dnn_md1.beta
-dnn_md4.delta = 1-dnn_md1.alpha-dnn_md1.beta-dnn_md1.gamma
+
 
 #validation
-p_valid_all = dnn_md1.alpha*p_valid_all1 + dnn_md1.beta*p_valid_all2 + dnn_md1.gamma*p_valid_all3 + dnn_md1.delta*p_valid_all4
+p_valid_all = dnn_md1.alpha*p_valid_all1 + dnn_md1.gamma*p_valid_all3
 auc_fcn, pr_auc_fcn = ut.calc_auc_t(cls_valid_all1[:,1], p_valid_all[:,1])
 
 pre_f,rec_f,f1_f,acc_f = ut.get_precision_and_recall_f1(np.argmax(cls_valid_all1,1), np.argmax(p_valid_all,1))
@@ -424,7 +424,7 @@ pre_f,rec_f,f1_f,acc_f = ut.get_precision_and_recall_f1(np.argmax(cls_valid_all1
 print("DNN-validation## ACC: %s,AUC %s,PRE %s,REC %s,F1 %s, PR_AUC %s" %(acc_f,auc_fcn,pre_f,rec_f,f1_f,pr_auc_fcn))
 
 #test 
-class_predict_fcn = dnn_md1.alpha*class_predict_fcn1 + dnn_md1.beta*class_predict_fcn2 + dnn_md1.gamma*class_predict_fcn3 + dnn_md1.delta*class_predict_fcn4
+class_predict_fcn = dnn_md1.alpha*class_predict_fcn1 + dnn_md1.gamma*class_predict_fcn3
 auc_fcn, pr_auc_fcn = ut.calc_auc_t(cls[:,1], class_predict_fcn[:,1])
 
 pre_f,rec_f,f1_f,acc_f = ut.get_precision_and_recall_f1(np.argmax(cls,1), np.argmax(class_predict_fcn,1))
@@ -435,14 +435,14 @@ print("DNN-testing## ACC: %s,AUC %s,PRE %s,REC %s,F1 %s, PR_AUC %s" %(acc_f,auc_
 name = dnn_md1.name+'_'+str(dnn_md1.hidden_units[0])+'-'+str(dnn_md1.hidden_units[1])+'-'+str(dnn_md1.hidden_units[2])+'-'+str(dnn_md1.hidden_units[3])+'_'+str(dnn_md1.alpha)+'_'+str(dnn_md1.beta)+'_'+str(dnn_md1.gamma)
 #SCORE
 np.savetxt("results/result_METABRIC1/p_valid_all1.txt", p_valid_all1)
-np.savetxt("results/result_METABRIC1/p_valid_all2.txt", p_valid_all2)
+
 np.savetxt("results/result_METABRIC1/p_valid_all3.txt", p_valid_all3)
-np.savetxt("results/result_METABRIC1/p_valid_all4.txt", p_valid_all4)
+
 
 np.savetxt("results/result_METABRIC1/cls_valid_all1.txt", cls_valid_all1)
 
 np.savetxt("results/result_METABRIC1/class_predict_fcn1.txt", class_predict_fcn1)
-np.savetxt("results/result_METABRIC1/class_predict_fcn2.txt", class_predict_fcn2)
+
 np.savetxt("results/result_METABRIC1/class_predict_fcn3.txt", class_predict_fcn3)
-np.savetxt("results/result_METABRIC1/class_predict_fcn4.txt", class_predict_fcn4)
+
 np.savetxt("results/result_METABRIC1/cls.txt", cls)

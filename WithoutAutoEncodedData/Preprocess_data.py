@@ -506,7 +506,7 @@ def train_graph():
 
     # ----------------------------------------Runner-------------------------------------------------------
 
-    run_multi_encoder(verb=0, n_multi_epochs=200)
+    #run_multi_encoder(verb=0, n_multi_epochs=200)
 
 
 # Run for 15 iterations

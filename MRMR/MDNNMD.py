@@ -29,7 +29,7 @@ class MDNNMD():
         self.gamma = 0.5
         self.delta = 0.3
         self.LABEL = 'label_1904'
-        self.Kfold = 1
+        self.Kfold = "data/METABRIC_5year_skfold_1980_491.dat"
         self.epsilon = 1e-3
         self.BATCH_SIZE = 64
         self.END_LEARNING_RATE = 0.001
@@ -327,7 +327,7 @@ class MDNNMD():
     def load_txt(self,op,f_len):     
         
         d_class = numpy.loadtxt(self.LABEL, delimiter=' ').reshape(-1, 1) 
-        d_matrix = numpy.loadtxt(op, delimiter=',')
+        d_matrix = numpy.loadtxt(op, delimiter=' ')
         
         d_matrix = d_matrix[:,0:f_len]
         self.F_SIZE = d_matrix.shape[1]

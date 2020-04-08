@@ -19,7 +19,7 @@ tf.compat.v1.disable_eager_execution()
 class MDNNMD():
     def __init__(self):
         self.name = 'MDNNMD'
-        self.K = 10
+        self.K = '1'
         self.D1 = "Expr-400"
         self.D2 = 'CNA-200'
         self.D3 = 'CLINICAl-25'
@@ -28,8 +28,8 @@ class MDNNMD():
         self.beta = 0.1
         self.gamma = 0.5
         self.delta = 0.3
-        self.LABEL = 'label_1904'
-        self.Kfold = "data/METABRIC_5year_skfold_1980_491.dat"
+        self.LABEL = 'data/after_mrmr/label_1904.txt'
+        self.Kfold = '1'
         self.epsilon = 1e-3
         self.BATCH_SIZE = 64
         self.END_LEARNING_RATE = 0.001
@@ -326,9 +326,19 @@ class MDNNMD():
                        
     def load_txt(self,op,f_len):     
         
-        d_class = numpy.loadtxt(self.LABEL, delimiter=',').reshape(-1, 1)
+        d_class = numpy.loadtxt(self.LABEL, delimiter=' ').reshape(-1, 1) 
+        d_class_coma = numpy.loadtxt(self.LABEL, delimiter=',').reshape(-1, 1) 
+        print("this is dclass")
+        print(d_class)  
+        print("this is dclass with comaa")
+        print(d_class_coma) 
+              
         d_matrix = numpy.loadtxt(op, delimiter=',')
-        
+        print("this is dclass")
+        print(d_matrix)
+        d_matrix_wocoma = numpy.loadtxt(op, delimiter=' ')
+        print("this is dclass with out comaa")
+        print(d_matrix_wocoma)
         d_matrix = d_matrix[:,0:f_len]
         self.F_SIZE = d_matrix.shape[1]
                          
@@ -337,25 +347,27 @@ class MDNNMD():
 
 ut = Utils() 
 #Expr-1227
+print('clinical')
 dnn_md1 = MDNNMD()
 dnn_md1.load_config()
-d_matrix, d_class = dnn_md1.load_txt(dnn_md1.D1, 400)
+d_matrix, d_class = dnn_md1.load_txt(dnn_md1.D1,400)
 dnn_md1.epoch = 40
 dnn_md1.MAX_STEPS = [dnn_md1.epoch,dnn_md1.epoch,dnn_md1.epoch,dnn_md1.epoch,dnn_md1.epoch,dnn_md1.epoch,dnn_md1.epoch,dnn_md1.epoch,dnn_md1.epoch,dnn_md1.epoch]   #3000,3000,3000,100 MRMR-400  0504
 #dnn_md1.MAX_STEPS = [50,50,50,50,50,50,50,50,50,50]
-dnn_md1.hidden_units = [1000, 500, 500, 100]
+dnn_md1.hidden_units = [3000, 1500, 1500, 300]
 ##dnn_md1.active_fun = 'relu'
 #dnn_md1.regular = 'True'
 dnn_md1.END_LEARNING_RATE = 0.00001
 dnn_md1.IS_PRINT_INFO = "F"
 label1, cls = dnn_md1.code_lables(d_class, dnn_md1.MT_CLASS_TASK1)
-# 
+print(dnn_md1.Kfold)
 if os.path.exists(dnn_md1.Kfold):
     kf1 = pickle.load(open(dnn_md1.Kfold,"rb"))
     print("successfully loading already existing kfold index!")
 else:
     kf1 = KFold(dnn_md1.K, True)
     pickle.dump(kf1, open(dnn_md1.Kfold, "wb"))
+    print(kf1)
     print("successfully generating kfold index!")
 class_predict_fcn1,p_valid_all1,cls_valid_all1 = dnn_md1.train(kf1,d_matrix, d_class, cls, ut)
 
@@ -363,13 +375,14 @@ class_predict_fcn1,p_valid_all1,cls_valid_all1 = dnn_md1.train(kf1,d_matrix, d_c
 
 
 #CNA
+print('CNA')
 dnn_md2 = MDNNMD() 
 dnn_md2.load_config()
-d_matrix, d_class = dnn_md2.load_txt(dnn_md2.D2, 200)
+d_matrix, d_class = dnn_md2.load_txt(dnn_md2.D2,200)
 #dnn_md2.MAX_STEPS = [25,30,25,35,40,45,45,70,85,25]   #3000,3000,3000,100 CNV-200  0504
 dnn_md2.epoch = 40
 dnn_md2.MAX_STEPS = [dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch] 
-dnn_md2.hidden_units = [1000, 500, 500, 100]
+dnn_md2.hidden_units = [3000, 1500, 1500, 300]
 #dnn_md2.active_fun = 'relu'
 dnn_md2.END_LEARNING_RATE = 0.00001
 dnn_md2.IS_PRINT_INFO = "F" 
@@ -381,6 +394,7 @@ class_predict_fcn2,p_valid_all2,cls_valid_all2 = dnn_md2.train(kf1,d_matrix, d_c
 
 
 #CLINICAL-25
+print('clinical')
 dnn_md3 = MDNNMD() 
 dnn_md3.load_config()
 d_matrix, d_class = dnn_md3.load_txt(dnn_md3.D3,19)
@@ -413,7 +427,7 @@ class_predict_fcn3,p_valid_all3,cls_valid_all3 = dnn_md3.train(kf1,dnn_md3.scale
 dnn_md1.alpha = 0.3
 dnn_md1.beta = 0.1
 dnn_md1.gamma = 1-dnn_md1.alpha-dnn_md1.beta
-dnn_md4.delta = 1-dnn_md1.alpha-dnn_md1.beta-dnn_md1.gamma
+#dnn_md4.delta = 1-dnn_md1.alpha-dnn_md1.beta-dnn_md1.gamma
 
 #validation
 p_valid_all = dnn_md1.alpha*p_valid_all1 + dnn_md1.beta*p_valid_all2 + dnn_md1.gamma*p_valid_all3 #+ dnn_md1.delta*p_valid_all4

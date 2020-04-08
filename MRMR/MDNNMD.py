@@ -326,8 +326,8 @@ class MDNNMD():
                        
     def load_txt(self,op,f_len):     
         
-        d_class = numpy.loadtxt(self.LABEL, delimiter=' ').reshape(-1, 1) 
-        d_matrix = numpy.loadtxt(op, delimiter=' ')
+        d_class = numpy.loadtxt(self.LABEL, delimiter=',').reshape(-1, 1)
+        d_matrix = numpy.loadtxt(op, delimiter=',')
         
         d_matrix = d_matrix[:,0:f_len]
         self.F_SIZE = d_matrix.shape[1]
@@ -339,11 +339,11 @@ ut = Utils()
 #Expr-1227
 dnn_md1 = MDNNMD()
 dnn_md1.load_config()
-d_matrix, d_class = dnn_md1.load_txt(dnn_md1.D1,1227)
+d_matrix, d_class = dnn_md1.load_txt(dnn_md1.D1, 400)
 dnn_md1.epoch = 40
 dnn_md1.MAX_STEPS = [dnn_md1.epoch,dnn_md1.epoch,dnn_md1.epoch,dnn_md1.epoch,dnn_md1.epoch,dnn_md1.epoch,dnn_md1.epoch,dnn_md1.epoch,dnn_md1.epoch,dnn_md1.epoch]   #3000,3000,3000,100 MRMR-400  0504
 #dnn_md1.MAX_STEPS = [50,50,50,50,50,50,50,50,50,50]
-dnn_md1.hidden_units = [3000, 1500, 1500, 300]
+dnn_md1.hidden_units = [1000, 500, 500, 100]
 ##dnn_md1.active_fun = 'relu'
 #dnn_md1.regular = 'True'
 dnn_md1.END_LEARNING_RATE = 0.00001
@@ -365,11 +365,11 @@ class_predict_fcn1,p_valid_all1,cls_valid_all1 = dnn_md1.train(kf1,d_matrix, d_c
 #CNA
 dnn_md2 = MDNNMD() 
 dnn_md2.load_config()
-d_matrix, d_class = dnn_md2.load_txt(dnn_md2.D2,1227)
+d_matrix, d_class = dnn_md2.load_txt(dnn_md2.D2, 200)
 #dnn_md2.MAX_STEPS = [25,30,25,35,40,45,45,70,85,25]   #3000,3000,3000,100 CNV-200  0504
 dnn_md2.epoch = 40
 dnn_md2.MAX_STEPS = [dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch,dnn_md2.epoch] 
-dnn_md2.hidden_units = [3000, 1500, 1500, 300]
+dnn_md2.hidden_units = [1000, 500, 500, 100]
 #dnn_md2.active_fun = 'relu'
 dnn_md2.END_LEARNING_RATE = 0.00001
 dnn_md2.IS_PRINT_INFO = "F" 

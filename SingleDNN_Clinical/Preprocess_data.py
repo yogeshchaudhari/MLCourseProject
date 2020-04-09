@@ -207,8 +207,8 @@ def train_graph():
             cluster_id = 4
 
         # Exclude clusters 2 and 6
-        if cluster_id == '2' or cluster_id == '6':
-            continue
+        # if cluster_id == '2' or cluster_id == '6':
+        #     continue
 
         cluster_id = int(cluster_id) - 1
 
@@ -217,8 +217,8 @@ def train_graph():
             # Check if number of elements per cluster is exceeded
             unique, counts = np.unique(np_type_data, return_counts=True)
             count_dict = dict(zip(unique, counts))
-            if cluster_id in count_dict and count_dict[cluster_id] >= 200:
-                continue
+            # if cluster_id in count_dict and count_dict[cluster_id] >= 200:
+            #     continue
 
             rna_sample = rna_data[patient_id].values.transpose()
             gene_sample = gene_data[patient_id].values.transpose()
@@ -280,63 +280,6 @@ def train_graph():
     corrupted_X_train_gene = X_train_gene.copy()
     corrupted_X_train_rna = X_train_rna.copy()
 
-    for i in range(X_test_cna.shape[0]):
-        zero_indices = np.arange(900)
-        np.random.shuffle(zero_indices)
-        zero_indices = zero_indices[:90]
-        corrupted_X_train_cna[i:i+1, zero_indices] = 0
-        X_test_cna[i:i+1, zero_indices] = 0
-
-    # For setting random RNA to zero:
-    for i in range(X_test_rna.shape[0]):
-        zero_indices = np.arange(1200)
-        np.random.shuffle(zero_indices)
-        zero_indices = zero_indices[:120]
-        corrupted_X_train_rna[i:i + 1, zero_indices] = 0
-        X_test_rna[i:i + 1, zero_indices] = 0
-
-    # For setting random genes to zero:
-    for i in range(X_test_gene.shape[0]):
-        zero_indices = np.arange(1200)
-        np.random.shuffle(zero_indices)
-        zero_indices = zero_indices[:120]
-        corrupted_X_train_gene[i:i + 1, zero_indices] = 0
-        X_test_gene[i:i + 1, zero_indices] = 0
-
-    print("before cna")
-    df = pandas.DataFrame(X_train_cna)
-    df.to_csv('beforeautoEncoderData/cna_data.csv', index=False, header=False)
-    df = pandas.DataFrame(X_test_cna)
-    df.to_csv('beforeautoEncoderData/test_cna_data.csv', index=False, header=False)
-    print("after cna")
-
-    print("before rna")
-    df = pandas.DataFrame(X_train_rna)
-    df.to_csv('beforeautoEncoderData/rna_data.csv', index=False, header=False)
-    df = pandas.DataFrame(X_test_rna)
-    df.to_csv('beforeautoEncoderData/test_rna_data.csv', index=False, header=False)
-    print("after rna")
-
-    print("before gene")
-    df = pandas.DataFrame(X_train_gene)
-    df.to_csv('beforeautoEncoderData/gene_data.csv', index=False, header=False)
-    df = pandas.DataFrame(X_test_gene)
-    df.to_csv('beforeautoEncoderData/test_gene_data.csv', index=False, header=False)
-    print("after gene")
-
-    print("before clinical")
-    df = pandas.DataFrame(X_train_clinical_data)
-    df.to_csv('beforeautoEncoderData/clinical_data.csv', index=False, header=False)
-    df = pandas.DataFrame(X_test_clinical_data)
-    df.to_csv('beforeautoEncoderData/test_clinical_data.csv', index=False, header=False)
-    print("after clinical")
-
-    print("before labels")
-    df = pandas.DataFrame(label_train)
-    df.to_csv('beforeautoEncoderData/label_train.csv', index=False, header=False)
-    df = pandas.DataFrame(label_test)
-    df.to_csv('beforeautoEncoderData/label_test.csv', index=False, header=False)
-    print("after labels")
 # ----------------------------------------Multi-Modal AutoEncoder---------------------------------------------------
 
     def run_multi_encoder(n_multi_epochs, verb):
@@ -442,45 +385,45 @@ def train_graph():
 
 
         print("before mmae")
-        df = pandas.DataFrame(multi_enc_train)
+        df1 = pandas.DataFrame(multi_enc_train)
+        df2 = pandas.DataFrame(multi_enc_test)
+        df = pandas.concat([df1, df2], axis=0)
         df.to_csv('autoEncoderData/multi_enc_train.csv', index=False, header=False)
-        df = pandas.DataFrame(multi_enc_test)
-        df.to_csv('autoEncoderData/multi_enc_test.csv', index=False, header=False)
         print("after mmae")
 
         print("before cna")
-        df = pandas.DataFrame(output_train_cna)
+        df1 = pandas.DataFrame(output_train_cna)
+        df2 = pandas.DataFrame(output_test_cna)
+        df = pandas.concat([df1, df2], axis=0)
         df.to_csv('autoEncoderData/cna_data.csv', index=False, header=False)
-        df = pandas.DataFrame(output_test_cna)
-        df.to_csv('autoEncoderData/test_cna_data.csv', index=False, header=False)
         print("after cna")
 
         print("before rna")
-        df = pandas.DataFrame(output_train_rna)
+        df1 = pandas.DataFrame(output_train_rna)
+        df2 = pandas.DataFrame(output_test_rna)
+        df = pandas.concat([df1, df2], axis=0)
         df.to_csv('autoEncoderData/rna_data.csv', index=False, header=False)
-        df = pandas.DataFrame(output_test_rna)
-        df.to_csv('autoEncoderData/test_rna_data.csv', index=False, header=False)
         print("after rna")
 
         print("before gene")
-        df = pandas.DataFrame(output_train_gene)
+        df1 = pandas.DataFrame(output_train_gene)
+        df2 = pandas.DataFrame(output_test_gene)
+        df = pandas.concat([df1, df2], axis=0)
         df.to_csv('autoEncoderData/gene_data.csv', index=False, header=False)
-        df = pandas.DataFrame(output_test_gene)
-        df.to_csv('autoEncoderData/test_gene_data.csv', index=False, header=False)
         print("after gene")
 
         print("before clinical")
-        df = pandas.DataFrame(X_train_clinical_data)
+        df1 = pandas.DataFrame(X_train_clinical_data)
+        df2 = pandas.DataFrame(X_test_clinical_data)
+        df = pandas.concat([df1, df2], axis=0)
         df.to_csv('autoEncoderData/clinical_data.csv', index=False, header=False)
-        df = pandas.DataFrame(X_test_clinical_data)
-        df.to_csv('autoEncoderData/test_clinical_data.csv', index=False, header=False)
         print("after clinical")
 
         print("before labels")
-        df = pandas.DataFrame(label_train)
+        df1 = pandas.DataFrame(label_train)
+        df2 = pandas.DataFrame(label_test)
+        df = pandas.concat([df1, df2], axis=0)
         df.to_csv('autoEncoderData/label_train.csv', index=False, header=False)
-        df = pandas.DataFrame(label_test)
-        df.to_csv('autoEncoderData/label_test.csv', index=False, header=False)
         print("after labels")
 
         # Evaluate different representations

@@ -33,7 +33,7 @@ class MDNNMD():
         self.epsilon = 1e-3
         self.BATCH_SIZE = 64
         self.END_LEARNING_RATE = 0.001
-        self.F_SIZE = 400
+        self.F_SIZE = 1227
         self.hidden_units = [3000,3000,3000,100] 
         self.MT_CLASS_TASK1 = 2
         self.IS_PT = "F"
